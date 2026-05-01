@@ -53,14 +53,31 @@ class Producto {
     }
 
     public function actualizar($datos, $id) {
-        $sql = "UPDATE productos SET nombre_prod=?, descripcion=?, precio=?, stock=?, id_categoria=?, id_provider=?, imagen_url=?, id_sucursal=? 
-                WHERE id_producto=?";
-        
-        $parametros = array_values($datos);
-        $parametros[] = $id;
+    // 8 campos a actualizar
+    $sql = "UPDATE productos SET 
+                nombre_prod=?, 
+                descripcion=?, 
+                precio=?, 
+                stock=?, 
+                id_categoria=?, 
+                id_provider=?, 
+                imagen_url=?, 
+                id_sucursal=? 
+            WHERE id_producto=?"; // El parámetro número 9
+    
+    // Creamos una copia de los datos para no modificar el array original
+    $parametros = array_values($datos); 
+    $parametros[] = $id; // Agregamos el ID al final del array (el noveno elemento)
 
-        return $this->db->prepare($sql)->execute($parametros);
+    try {
+        $stmt = $this->db->prepare($sql);
+        return $stmt->execute($parametros);
+    } catch (PDOException $e) {
+        // Esto imprimirá el error real en los logs de XAMPP
+        error_log("Error en DB: " . $e->getMessage());
+        return false;
     }
+}
 
     public function eliminar($id) {
         // En lugar de borrar (que da error de integridad), podrías hacer un "borrado lógico"

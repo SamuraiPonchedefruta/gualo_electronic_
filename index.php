@@ -18,7 +18,6 @@ function isLoggedIn() {
     <style>
         .navbar-brand { letter-spacing: 1px; }
         
-        /* 1. ESTILO CON LOGO DE FONDO (HERO SECTION) */
         .hero-bg { 
             background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), 
                         url('assets/img/logo/gualo_logo.png'); 
@@ -27,14 +26,13 @@ function isLoggedIn() {
             background-repeat: no-repeat;     
             background-attachment: fixed;     
             color: white; 
-            padding: 10rem 0; /* Espacio extra para que se aprecie el fondo */
+            padding: 10rem 0; 
         }
 
         .card-img-top { transition: transform 0.3s; }
         .card:hover .card-img-top { transform: scale(1.05); }
         .text-warning-gualo { color: #f7ca04; }
         
-        /* Estilos para la sección final de contacto */
         .contact-section { background-color: #ffffff; border-top: 5px solid #f7ca04; }
         .map-container { border-radius: 15px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
     </style>
@@ -72,7 +70,7 @@ function isLoggedIn() {
         </div>
     </nav>
 
-    <!-- 2. HERO SECTION CENTRADA CON FONDO -->
+    <!-- HERO SECTION -->
     <header class="hero-bg text-center">
         <div class="container">
             <h1 class="display-3 fw-bold text-uppercase shadow-sm">Equipa tu Nave en Santiago</h1>
@@ -80,7 +78,6 @@ function isLoggedIn() {
                 Los mejores accesorios 4x4: Jimny, D-Max y Hilux.
             </p>
             
-            <!-- Buscador centrado -->
             <form class="row g-2 justify-content-center mt-4" method="GET" action="views/catalogo.php">
                 <div class="col-md-6">
                     <input type="text" name="buscar" class="form-control form-control-lg border-warning shadow" placeholder="¿Qué buscas para tu auto?" required>
@@ -94,20 +91,19 @@ function isLoggedIn() {
 
     <!-- Productos Recientes -->
     <main class="container my-5">
-        <h2 class="fw-bold mb-4 border-bottom pb-2"><i class="fa-solid fa-gears text-warning"></i> ACCESORIOS RECIENTES</h2>
+        <h2 class="fw-bold mb-4 border-bottom pb-2"><i class="fa-solid fa-gears text-warning"></i> ACCESORIOS DISPONIBLES</h2>
         <div class="row g-4">
             <?php
             $productoModel = new Producto();
             $productos = $productoModel->obtenerTodos(true); 
+
             if (empty($productos)): ?>
                 <div class="col-12 text-center my-5">
                     <i class="fa-solid fa-box-open fa-3x text-muted mb-3"></i>
                     <p class="alert alert-info">Aún no hay accesorios disponibles. ¡Vuelve pronto!</p>
                 </div>
-            <?php else:
-                $conteo = 0;
+            <?php else: 
                 foreach ($productos as $producto): 
-                    if($conteo >= 6) break;
                     $imagenPath = !empty($producto['imagen_url']) ? 'assets/img/productos/' . $producto['imagen_url'] : 'assets/img/default.jpg';
             ?>
                 <div class="col-md-4 col-sm-6">
@@ -127,7 +123,8 @@ function isLoggedIn() {
                         </div>
                     </div>
                 </div>
-            <?php $conteo++; endforeach; endif; ?>
+            <?php endforeach; 
+            endif; ?>
         </div>
     </main>
 

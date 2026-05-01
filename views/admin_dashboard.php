@@ -65,6 +65,21 @@ $productos = $productoModel->obtenerTodos(false);
         <a href="../index.php" class="btn btn-outline-light btn-sm"><i class="fa-solid fa-house"></i> Inicio</a>
     </div>
 
+    <!-- CAMBIO: Bloque de alertas para confirmación sin cambiar de estilo -->
+    <?php if (isset($_GET['res'])): ?>
+        <?php if ($_GET['res'] == 'success'): ?>
+            <div class="alert alert-success alert-dismissible fade show bg-success text-white border-0 shadow-sm mb-4" role="alert">
+                <i class="fa-solid fa-circle-check me-2"></i> <strong>¡Hecho!</strong> Los cambios se guardaron correctamente.
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        <?php elseif ($_GET['res'] == 'error'): ?>
+            <div class="alert alert-danger alert-dismissible fade show bg-danger text-white border-0 shadow-sm mb-4" role="alert">
+                <i class="fa-solid fa-triangle-exclamation me-2"></i> <strong>Error:</strong> No se pudo actualizar el registro.
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        <?php endif; ?>
+    <?php endif; ?>
+
     <!-- Pestañas de Navegación -->
     <ul class="nav nav-tabs mb-4 border-secondary" id="adminTabs" role="tablist">
         <li class="nav-item">
@@ -93,7 +108,6 @@ $productos = $productoModel->obtenerTodos(false);
                         <div class="col-12 mb-4">
                             <div class="card card-admin p-4 shadow">
                                 <div class="row align-items-center">
-                                    <!-- Columna 1: Cliente -->
                                     <div class="col-md-4 divider">
                                         <div class="info-label">Cliente y Vehículo</div>
                                         <h4 class="mb-1 text-white"><?= htmlspecialchars($s['cliente']) ?></h4>
@@ -107,12 +121,9 @@ $productos = $productoModel->obtenerTodos(false);
                                             </p>
                                         </div>
                                     </div>
-
-                                    <!-- Columna 2: Trabajo e Imagen -->
                                     <div class="col-md-4 divider text-center px-4">
                                         <div class="info-label">Trabajo a Realizar</div>
                                         <h5 class="text-warning mb-3 fw-bold"><?= htmlspecialchars($s['nombre_servicio']) ?></h5>
-                                        
                                         <?php if (!empty($s['nombre_prod'])): ?>
                                             <div class="d-flex flex-column align-items-center">
                                                 <img src="../assets/img/productos/<?= $s['imagen_url'] ?>" 
@@ -127,8 +138,6 @@ $productos = $productoModel->obtenerTodos(false);
                                             </div>
                                         <?php endif; ?>
                                     </div>
-
-                                    <!-- Columna 3: Formulario -->
                                     <div class="col-md-4 ps-md-4">
                                         <form action="../actions/procesar_cita.php" method="POST">
                                             <input type="hidden" name="id_cita" value="<?= $s['id_cita'] ?>">
@@ -165,7 +174,6 @@ $productos = $productoModel->obtenerTodos(false);
                         <i class="fa-solid fa-plus"></i> AGREGAR NUEVO
                     </a>
                 </div>
-
                 <div class="table-responsive">
                     <table class="table table-dark table-hover align-middle">
                         <thead class="table-warning text-dark">
@@ -185,9 +193,7 @@ $productos = $productoModel->obtenerTodos(false);
                                          class="img-producto-tabla" 
                                          onerror="this.src='../assets/img/default.jpg';">
                                 </td>
-                                <td>
-                                    <span class="fw-bold"><?= htmlspecialchars($p['nombre_prod']) ?></span>
-                                </td>
+                                <td><span class="fw-bold"><?= htmlspecialchars($p['nombre_prod']) ?></span></td>
                                 <td class="text-success fw-bold">$<?= number_format($p['precio'], 2) ?></td>
                                 <td>
                                     <span class="badge <?= $p['stock'] > 5 ? 'bg-secondary' : 'bg-danger' ?>">
@@ -195,14 +201,8 @@ $productos = $productoModel->obtenerTodos(false);
                                     </span>
                                 </td>
                                 <td class="text-center">
-                                    <a href="form_producto.php?id=<?= $p['id_producto'] ?>" class="btn btn-sm btn-info">
-                                        <i class="fa-solid fa-pen"></i>
-                                    </a>
-                                    <a href="../actions/eliminar_producto.php?id=<?= $p['id_producto'] ?>" 
-                                       class="btn btn-sm btn-danger" 
-                                       onclick="return confirm('¿Eliminar este accesorio?')">
-                                        <i class="fa-solid fa-trash"></i>
-                                    </a>
+                                    <a href="form_producto.php?id=<?= $p['id_producto'] ?>" class="btn btn-sm btn-info"><i class="fa-solid fa-pen"></i></a>
+                                    <a href="../actions/eliminar_producto.php?id=<?= $p['id_producto'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('¿Eliminar este accesorio?')"><i class="fa-solid fa-trash"></i></a>
                                 </td>
                             </tr>
                             <?php endforeach; ?>
@@ -212,7 +212,6 @@ $productos = $productoModel->obtenerTodos(false);
             </div>
         </div>
     </div>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
