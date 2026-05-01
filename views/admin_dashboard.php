@@ -1,7 +1,7 @@
 <?php
 session_start();
 require_once '../config/conexion.php'; 
-require_once '../models/Producto.php'; // Asegúrate de tener este modelo
+require_once '../models/Producto.php'; 
 
 if (!isset($_SESSION['user_rol']) || $_SESSION['user_rol'] != 1) {
     header("Location: ../index.php");
@@ -11,7 +11,7 @@ if (!isset($_SESSION['user_rol']) || $_SESSION['user_rol'] != 1) {
 $db = DB::getInstance()->getConnection();
 $productoModel = new Producto();
 
-// --- LÓGICA DE CITAS (Tu código original) ---
+// --- LÓGICA DE CITAS ---
 $queryCitas = "SELECT c.id_cita, u.nombre AS cliente, s.nombre_servicio, m.nombre_marca, mdl.nombre_modelo, vc.anio, c.notas, p.nombre_prod, p.precio, p.imagen_url
           FROM citas c
           JOIN usuarios u ON c.id_cliente = u.id_usuario
@@ -29,8 +29,8 @@ $stmtMec = $db->prepare("SELECT id_usuario, nombre FROM usuarios WHERE id_rol = 
 $stmtMec->execute();
 $mecanicos = $stmtMec->fetchAll();
 
-// --- LÓGICA DE PRODUCTOS (Para el CRUD) ---
-$productos = $productoModel->obtenerTodos(); 
+// --- LÓGICA DE PRODUCTOS ---
+$productos = $productoModel->obtenerTodos(false);
 ?>
 
 <!DOCTYPE html>
@@ -43,31 +43,38 @@ $productos = $productoModel->obtenerTodos();
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body { background: #1a1a1a; color: white; font-family: 'Segoe UI', sans-serif; }
-        .card-admin { background: #252525; border: 1px solid #333; border-top: 4px solid #f7ca04; }
+        .card-admin { background: #252525; border: 1px solid #333; border-top: 4px solid #f7ca04; transition: 0.3s; }
+        .card-admin:hover { border-color: #f7ca04; }
         .text-gualo { color: #f7ca04; }
-        .nav-tabs .nav-link { color: #aaa; border: none; }
-        .nav-tabs .nav-link.active { background: #f7ca04; color: #000; fw-bold; }
-        .img-producto { width: 80px; height: 60px; object-fit: cover; border-radius: 5px; }
-        .table-dark-gualo { background: #252525; color: white; }
+        .info-label { font-size: 0.75rem; text-transform: uppercase; color: #f7ca04; font-weight: bold; margin-bottom: 2px; }
+        .divider { border-right: 1px solid #444; }
+        .nav-tabs .nav-link { color: #aaa; border: none; padding: 12px 25px; }
+        .nav-tabs .nav-link.active { background: #f7ca04; color: #000; font-weight: bold; border-radius: 5px 5px 0 0; }
+        .img-producto-tabla { width: 70px; height: 50px; object-fit: contain; background: #000; border-radius: 5px; }
+        .img-producto-cita { width: 100px; height: 70px; object-fit: contain; background: #000; border-radius: 5px; border: 1px solid #444; }
+        @media (max-width: 768px) { .divider { border-right: none; border-bottom: 1px solid #444; margin-bottom: 15px; padding-bottom: 15px; } }
     </style>
 </head>
 <body class="container py-5">
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="text-gualo fw-bold text-uppercase"><i class="fa-solid fa-gauge"></i> Panel de Control</h2>
-        <a href="../index.php" class="btn btn-outline-warning btn-sm"><i class="fa-solid fa-house"></i> Volver a la Tienda</a>
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <div>
+            <h2 class="text-gualo fw-bold mb-0 text-uppercase"><i class="fa-solid fa-screwdriver-wrench"></i> Panel de Control</h2>
+            <p class="text-muted mb-0">Gestión integral de Gualo Electronic</p>
+        </div>
+        <a href="../index.php" class="btn btn-outline-light btn-sm"><i class="fa-solid fa-house"></i> Inicio</a>
     </div>
 
     <!-- Pestañas de Navegación -->
     <ul class="nav nav-tabs mb-4 border-secondary" id="adminTabs" role="tablist">
         <li class="nav-item">
-            <button class="nav-link active fw-bold" id="citas-tab" data-bs-toggle="tab" data-bs-target="#citas">
-                <i class="fa-solid fa-calendar-check"></i> Citas Pendientes
+            <button class="nav-link active" id="citas-tab" data-bs-toggle="tab" data-bs-target="#citas">
+                <i class="fa-solid fa-calendar-check"></i> CITAS PENDIENTES
             </button>
         </li>
         <li class="nav-item">
-            <button class="nav-link fw-bold" id="inventario-tab" data-bs-toggle="tab" data-bs-target="#inventario">
-                <i class="fa-solid fa-boxes-stacked"></i> Gestionar Inventario
+            <button class="nav-link" id="inventario-tab" data-bs-toggle="tab" data-bs-target="#inventario">
+                <i class="fa-solid fa-boxes-stacked"></i> INVENTARIO 4x4
             </button>
         </li>
     </ul>
@@ -76,56 +83,86 @@ $productos = $productoModel->obtenerTodos();
         <!-- SECCIÓN 1: GESTIÓN DE CITAS -->
         <div class="tab-pane fade show active" id="citas">
             <?php if (empty($solicitudes)): ?>
-                <div class="alert alert-dark text-center py-5 border-secondary">
+                <div class="alert alert-dark border-secondary text-center py-5">
                     <i class="fa-solid fa-circle-check fa-3x text-success mb-3"></i>
                     <h4>¡Todo al día!</h4>
                 </div>
             <?php else: ?>
-                <?php foreach ($solicitudes as $s): ?>
-                    <!-- Tu diseño original de card de citas aquí -->
-                    <div class="card card-admin p-4 mb-3">
-                        <div class="row align-items-center">
-                            <div class="col-md-4 border-end border-secondary">
-                                <div class="small text-warning fw-bold uppercase">Cliente</div>
-                                <h4><?= htmlspecialchars($s['cliente']) ?></h4>
-                                <p class="text-info small mb-0"><i class="fa-solid fa-car"></i> <?= "{$s['nombre_marca']} {$s['nombre_modelo']}" ?></p>
-                            </div>
-                            <div class="col-md-4 text-center border-end border-secondary">
-                                <span class="badge bg-warning text-dark mb-2"><?= htmlspecialchars($s['nombre_servicio']) ?></span>
-                                <?php if($s['nombre_prod']): ?>
-                                    <p class="small mb-0 text-white"><?= htmlspecialchars($s['nombre_prod']) ?></p>
-                                <?php endif; ?>
-                            </div>
-                            <div class="col-md-4 ps-4">
-                                <form action="../actions/procesar_cita.php" method="POST" class="row g-2">
-                                    <input type="hidden" name="id_cita" value="<?= $s['id_cita'] ?>">
-                                    <div class="col-12">
-                                        <input type="datetime-local" name="fecha_cita" class="form-control form-control-sm bg-dark text-white border-secondary" required>
+                <div class="row">
+                    <?php foreach ($solicitudes as $s): ?>
+                        <div class="col-12 mb-4">
+                            <div class="card card-admin p-4 shadow">
+                                <div class="row align-items-center">
+                                    <!-- Columna 1: Cliente -->
+                                    <div class="col-md-4 divider">
+                                        <div class="info-label">Cliente y Vehículo</div>
+                                        <h4 class="mb-1 text-white"><?= htmlspecialchars($s['cliente']) ?></h4>
+                                        <p class="mb-2 text-info small fw-bold">
+                                            <i class="fa-solid fa-car"></i> <?= "{$s['nombre_marca']} {$s['nombre_modelo']} ({$s['anio']})" ?>
+                                        </p>
+                                        <div class="bg-dark p-2 rounded">
+                                            <p class="small text-muted mb-0" style="font-style: italic;">
+                                                <i class="fa-solid fa-quote-left text-gualo"></i> 
+                                                <?= !empty($s['notas']) ? htmlspecialchars($s['notas']) : "Sin notas adicionales." ?>
+                                            </p>
+                                        </div>
                                     </div>
-                                    <div class="col-12">
-                                        <select name="id_mecanico" class="form-select form-select-sm bg-dark text-white border-secondary" required>
-                                            <option value="">Seleccionar Técnico</option>
-                                            <?php foreach ($mecanicos as $m): ?>
-                                                <option value="<?= $m['id_usuario'] ?>"><?= htmlspecialchars($m['nombre']) ?></option>
-                                            <?php endforeach; ?>
-                                        </select>
+
+                                    <!-- Columna 2: Trabajo e Imagen -->
+                                    <div class="col-md-4 divider text-center px-4">
+                                        <div class="info-label">Trabajo a Realizar</div>
+                                        <h5 class="text-warning mb-3 fw-bold"><?= htmlspecialchars($s['nombre_servicio']) ?></h5>
+                                        
+                                        <?php if (!empty($s['nombre_prod'])): ?>
+                                            <div class="d-flex flex-column align-items-center">
+                                                <img src="../assets/img/productos/<?= $s['imagen_url'] ?>" 
+                                                     class="img-producto-cita mb-2" 
+                                                     onerror="this.src='../assets/img/default.jpg';">
+                                                <p class="small mb-0 fw-bold text-white"><?= htmlspecialchars($s['nombre_prod']) ?></p>
+                                                <p class="text-success fw-bold mb-0">$<?= number_format($s['precio'], 2) ?></p>
+                                            </div>
+                                        <?php else: ?>
+                                            <div class="mt-2 p-2 border border-secondary rounded bg-dark">
+                                                <p class="text-muted small mb-0">Sin accesorio vinculado.</p>
+                                            </div>
+                                        <?php endif; ?>
                                     </div>
-                                    <button type="submit" class="btn btn-warning btn-sm fw-bold w-100 mt-2">AGENDAR</button>
-                                </form>
+
+                                    <!-- Columna 3: Formulario -->
+                                    <div class="col-md-4 ps-md-4">
+                                        <form action="../actions/procesar_cita.php" method="POST">
+                                            <input type="hidden" name="id_cita" value="<?= $s['id_cita'] ?>">
+                                            <div class="mb-2">
+                                                <label class="info-label">Fecha y Hora</label>
+                                                <input type="datetime-local" name="fecha_cita" class="form-control form-control-sm bg-dark text-white border-secondary" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="info-label">Técnico Encargado</label>
+                                                <select name="id_mecanico" class="form-select form-select-sm bg-dark text-white border-secondary" required>
+                                                    <option value="">-- Seleccionar --</option>
+                                                    <?php foreach ($mecanicos as $m): ?>
+                                                        <option value="<?= $m['id_usuario'] ?>"><?= htmlspecialchars($m['nombre']) ?></option>
+                                                    <?php endforeach; ?>
+                                                </select>
+                                            </div>
+                                            <button type="submit" class="btn btn-warning w-100 fw-bold">AGENDAR SERVICIO</button>
+                                        </form>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                <?php endforeach; ?>
+                    <?php endforeach; ?>
+                </div>
             <?php endif; ?>
         </div>
 
-        <!-- SECCIÓN 2: CRUD DE INVENTARIO (NUEVO) -->
+        <!-- SECCIÓN 2: CRUD DE INVENTARIO -->
         <div class="tab-pane fade" id="inventario">
             <div class="card card-admin p-4">
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h4 class="text-white mb-0">Control de Accesorios</h4>
-                    <a href="form_producto.php" class="btn btn-success fw-bold">
-                        <i class="fa-solid fa-plus"></i> Nuevo Accesorio
+                    <h4 class="text-white mb-0"><i class="fa-solid fa-box"></i> Stock de Accesorios</h4>
+                    <a href="form_producto.php" class="btn btn-success btn-sm fw-bold">
+                        <i class="fa-solid fa-plus"></i> AGREGAR NUEVO
                     </a>
                 </div>
 
@@ -134,7 +171,7 @@ $productos = $productoModel->obtenerTodos();
                         <thead class="table-warning text-dark">
                             <tr>
                                 <th>Imagen</th>
-                                <th>Accesorio</th>
+                                <th>Producto</th>
                                 <th>Precio</th>
                                 <th>Stock</th>
                                 <th class="text-center">Acciones</th>
@@ -145,12 +182,11 @@ $productos = $productoModel->obtenerTodos();
                             <tr>
                                 <td>
                                     <img src="../assets/img/productos/<?= $p['imagen_url'] ?>" 
-                                         class="img-producto" 
+                                         class="img-producto-tabla" 
                                          onerror="this.src='../assets/img/default.jpg';">
                                 </td>
                                 <td>
-                                    <span class="fw-bold"><?= htmlspecialchars($p['nombre_prod']) ?></span><br>
-                                    <small class="text-muted"><?= htmlspecialchars($p['nombre_categoria']) ?></small>
+                                    <span class="fw-bold"><?= htmlspecialchars($p['nombre_prod']) ?></span>
                                 </td>
                                 <td class="text-success fw-bold">$<?= number_format($p['precio'], 2) ?></td>
                                 <td>
@@ -159,12 +195,12 @@ $productos = $productoModel->obtenerTodos();
                                     </span>
                                 </td>
                                 <td class="text-center">
-                                    <a href="form_producto.php?id=<?= $p['id_producto'] ?>" class="btn btn-sm btn-info me-1">
+                                    <a href="form_producto.php?id=<?= $p['id_producto'] ?>" class="btn btn-sm btn-info">
                                         <i class="fa-solid fa-pen"></i>
                                     </a>
                                     <a href="../actions/eliminar_producto.php?id=<?= $p['id_producto'] ?>" 
-                                       class="btn btn-sm btn-danger"
-                                       onclick="return confirm('¿Eliminar accesorio?')">
+                                       class="btn btn-sm btn-danger" 
+                                       onclick="return confirm('¿Eliminar este accesorio?')">
                                         <i class="fa-solid fa-trash"></i>
                                     </a>
                                 </td>

@@ -98,7 +98,7 @@ function isLoggedIn() {
         <div class="row g-4">
             <?php
             $productoModel = new Producto();
-            $productos = $productoModel->obtenerTodos(); 
+            $productos = $productoModel->obtenerTodos(true); 
             if (empty($productos)): ?>
                 <div class="col-12 text-center my-5">
                     <i class="fa-solid fa-box-open fa-3x text-muted mb-3"></i>

@@ -1,31 +1,42 @@
 <?php
 class DB {
     private static $instance = null;
-    private $conn;
-    
+    private $pdo;
+
     private function __construct() {
-        $host = 'localhost:3306'; 
+        $host = '127.0.0.1'; 
         $db   = 'gualo_electronic';
         $user = 'root';
-        $pass = '';
+        $pass = ''; // <--- Si sigue fallando, intenta poner 'root' aquí
+        $port = '3306'; // <--- ¡OJO! Si en XAMPP dice 3307, cámbialo aquí
+
+        $dsn = "mysql:host=$host;port=$port;dbname=$db;charset=utf8mb4";
+        
+        $options = [
+            PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::ATTR_EMULATE_PREPARES   => false,
+        ];
+
         try {
-            // Usamos utf8mb4 para evitar problemas con tildes o eñes
-            $this->conn = new PDO("mysql:host=$host;dbname=$db;charset=utf8mb4", $user, $pass);
-            $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        } catch(PDOException $e) {
-            die("Error de conexión: " . $e->getMessage());
+            $this->pdo = new PDO($dsn, $user, $pass, $options);
+        } catch (\PDOException $e) {
+            // Esto nos dirá si el problema es el puerto o la clave
+            die("ERROR DE CONEXIÓN EN GUALO DB: " . $e->getMessage());
         }
     }
 
     public static function getInstance() {
-        if (!self::$instance) {
-            self::$instance = new DB();
+        if (self::$instance === null) {
+            self::$instance = new self();
         }
         return self::$instance;
     }
 
     public function getConnection() {
-        return $this->conn;
+        return $this->pdo;
     }
+
+    private function __clone() { }
 }
 ?>
