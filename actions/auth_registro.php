@@ -23,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $passwordHash = password_hash($password, PASSWORD_DEFAULT);
     
     // 3. Insertamos el nuevo usuario (Rol 2 es cliente por defecto)
-    $stmt = $db->prepare("INSERT INTO usuarios (nombre, correo, password, id_rol) VALUES (?, ?, ?, 2)");
+    $stmt = $db->prepare("INSERT INTO usuarios (nombre, correo, password, id_rol) VALUES (?, ?, ?, 3)");
     
     if ($stmt->execute([$nombre, $correo, $passwordHash])) {
         // Registro exitoso, lo mandamos al login para que entre

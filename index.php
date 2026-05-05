@@ -2,6 +2,7 @@
 session_start();
 require_once 'models/Producto.php';
 
+// Función para verificar si el usuario ha iniciado sesión
 function isLoggedIn() { 
     return isset($_SESSION['user_id']); 
 }
@@ -35,6 +36,12 @@ function isLoggedIn() {
         
         .contact-section { background-color: #ffffff; border-top: 5px solid #f7ca04; }
         .map-container { border-radius: 15px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        
+        /* Efecto de pulso suave para el botón de citas */
+        .btn-mis-citas {
+            border: 2px solid #f7ca04;
+            box-shadow: 0 0 10px rgba(247, 202, 4, 0.2);
+        }
     </style>
 </head>
 <body class="bg-light">
@@ -55,15 +62,27 @@ function isLoggedIn() {
                         <a href="login.php" class="btn btn-outline-light btn-sm me-2">Login</a>
                         <a href="registro.php" class="btn btn-warning btn-sm fw-bold">Registro</a>
                     <?php else: ?>
-                        <span class="text-white me-3 small">Hola, <?php echo htmlspecialchars($_SESSION['user_name']); ?></span>
-                        <?php if ($_SESSION['user_rol'] == 1): ?>
-                            <a href="views/admin_dashboard.php" class="btn btn-info btn-sm me-2 text-dark fw-bold">Panel Admin</a>
-                        <?php elseif ($_SESSION['user_rol'] == 3): ?>
-                            <a href="views/mis_citas.php" class="btn btn-warning btn-sm me-2 text-dark fw-bold">
-                                <i class="fa-solid fa-calendar-check"></i> Mis Citas
+                        <span class="text-white me-3 small">
+                            <i class="fa-solid fa-circle-user text-warning"></i> 
+                            Hola, <strong><?php echo htmlspecialchars($_SESSION['user_name']); ?></strong>
+                        </span>
+
+                        <?php 
+                        $rol = $_SESSION['user_rol']; 
+                        
+                        if ($rol == 1): ?>
+                            <a href="views/admin_dashboard.php" class="btn btn-info btn-sm me-2 text-dark fw-bold">
+                                <i class="fa-solid fa-gauge-high"></i> Panel Admin
+                            </a>
+                        <?php elseif ($rol == 3): ?>
+                            <a href="views/mis_citas.php" class="btn btn-warning btn-sm me-2 text-dark fw-bold btn-mis-citas">
+                                <i class="fa-solid fa-calendar-check"></i> MIS CITAS
                             </a>
                         <?php endif; ?>
-                        <a href="actions/logout.php" class="btn btn-danger btn-sm">Salir</a>
+
+                        <a href="actions/logout.php" class="btn btn-outline-danger btn-sm">
+                            <i class="fa-solid fa-power-off"></i>
+                        </a>
                     <?php endif; ?>
                 </div>
             </div>
@@ -91,7 +110,9 @@ function isLoggedIn() {
 
     <!-- Productos Recientes -->
     <main class="container my-5">
-        <h2 class="fw-bold mb-4 border-bottom pb-2"><i class="fa-solid fa-gears text-warning"></i> ACCESORIOS DISPONIBLES</h2>
+        <h2 class="fw-bold mb-4 border-bottom pb-2">
+            <i class="fa-solid fa-gears text-warning"></i> ACCESORIOS DISPONIBLES
+        </h2>
         <div class="row g-4">
             <?php
             $productoModel = new Producto();
@@ -112,13 +133,25 @@ function isLoggedIn() {
                             <img src="<?php echo $imagenPath; ?>" class="card-img-top" style="height: 220px; object-fit: cover;" alt="Producto">
                         </div>
                         <div class="card-body">
-                            <h6 class="text-muted text-uppercase fw-bold mb-1 small"><?php echo htmlspecialchars($producto['nombre_categoria']); ?></h6>
+                            <h6 class="text-muted text-uppercase fw-bold mb-1 small"><?php echo htmlspecialchars($producto['nombre_categoria'] ?? 'Sin categoría'); ?></h6>
                             <h5 class="card-title fw-bold"><?php echo htmlspecialchars($producto['nombre_prod']); ?></h5>
                             <p class="h4 text-primary fw-bold mb-3">$<?php echo number_format($producto['precio'], 2); ?></p>
+                            
                             <div class="d-flex justify-content-between mb-3 small text-muted">
                                 <span><i class="fa-solid fa-boxes-stacked"></i> Stock: <?php echo $producto['stock']; ?></span>
-                                <span><i class="fa-solid fa-shop"></i> <?php echo htmlspecialchars($producto['nombre_sucursal']); ?></span>
+                                <span>
+                                    <i class="fa-solid fa-shop"></i> 
+                                    <?php 
+                                        // IMPLEMENTACIÓN: Lógica de nombre de sucursal unificado
+                                        if (empty($producto['nombre_sucursal']) || $producto['nombre_sucursal'] == 'Central') {
+                                            echo 'Gualo Electronic';
+                                        } else {
+                                            echo htmlspecialchars($producto['nombre_sucursal']);
+                                        }
+                                    ?>
+                                </span>
                             </div>
+                            
                             <a href="views/detalle_producto.php?id=<?php echo $producto['id_producto']; ?>" class="btn btn-dark w-100 fw-bold">VER DETALLES</a>
                         </div>
                     </div>
@@ -145,11 +178,7 @@ function isLoggedIn() {
                     <div class="map-container">
                         <iframe 
                             src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3945.882414761005!2d-80.9702586!3d8.103325!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8fad167339798533%3A0x6b772422746c1064!2sAv.%20Central%2C%20Santiago%20de%20Veraguas!5e0!3m2!1ses!2spa!4v1715458000000!5m2!1ses!2spa" 
-                            width="100%" 
-                            height="350" 
-                            style="border:0;" 
-                            allowfullscreen="" 
-                            loading="lazy">
+                            width="100%" height="350" style="border:0;" allowfullscreen="" loading="lazy">
                         </iframe>
                     </div>
                 </div>
@@ -157,7 +186,6 @@ function isLoggedIn() {
         </div>
     </section>
 
-    <!-- Footer -->
     <footer class="bg-dark text-white text-center py-4">
         <div class="container">
             <p class="mb-1">Gualo Electronic &copy; <?php echo date('Y'); ?> | Santiago de Veraguas, Panamá</p>

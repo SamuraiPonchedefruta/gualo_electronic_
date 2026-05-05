@@ -11,11 +11,11 @@ if (!isset($_GET['id']) || empty($_GET['id'])) {
 $id_producto = $_GET['id'];
 $db = DB::getInstance()->getConnection();
 
-// 2. Consultar los datos incluyendo el JOIN con la tabla sucursales
+// 2. Consultar los datos incluyendo LEFT JOIN para evitar que los NULL bloqueen el resultado
 $stmt = $db->prepare("SELECT p.*, c.nombre_categoria, s.nombre_sucursal 
                       FROM productos p 
-                      JOIN categorias c ON p.id_categoria = c.id_categoria 
-                      JOIN sucursales s ON p.id_sucursal = s.id_sucursal 
+                      LEFT JOIN categorias c ON p.id_categoria = c.id_categoria 
+                      LEFT JOIN sucursales s ON p.id_sucursal = s.id_sucursal 
                       WHERE p.id_producto = ?");
 $stmt->execute([$id_producto]);
 $producto = $stmt->fetch();
@@ -30,7 +30,7 @@ if (!$producto) {
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title><?php echo $producto['nombre_prod']; ?> | Gualo Electronic</title>
+    <title><?php echo htmlspecialchars($producto['nombre_prod']); ?> | Gualo Electronic</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -55,23 +55,32 @@ if (!$producto) {
     <div class="row">
         <div class="col-md-6 mb-4">
             <?php $foto = !empty($producto['imagen_url']) ? '../assets/img/productos/' . $producto['imagen_url'] : '../assets/img/default.jpg'; ?>
-            <img src="<?php echo $foto; ?>" class="img-fluid product-img" alt="<?php echo $producto['nombre_prod']; ?>">
+            <img src="<?php echo $foto; ?>" class="img-fluid product-img" alt="<?php echo htmlspecialchars($producto['nombre_prod']); ?>">
         </div>
 
         <div class="col-md-6">
-            <span class="badge bg-warning text-dark mb-2"><?php echo $producto['nombre_categoria']; ?></span>
-            <h1 class="fw-bold text-uppercase"><?php echo $producto['nombre_prod']; ?></h1>
+            <span class="badge bg-warning text-dark mb-2"><?php echo htmlspecialchars($producto['nombre_categoria'] ?? 'General'); ?></span>
+            <h1 class="fw-bold text-uppercase"><?php echo htmlspecialchars($producto['nombre_prod']); ?></h1>
             
             <p class="text-muted">
                 <i class="fa-solid fa-location-dot text-danger"></i> 
-                Disponible en: <strong><?php echo $producto['nombre_sucursal']; ?></strong>
+                Disponible en: <strong>
+                    <?php 
+                        // Lógica para unificar el nombre de la ubicación
+                        if (empty($producto['nombre_sucursal']) || $producto['nombre_sucursal'] == 'Central') {
+                            echo 'Gualo Electronic';
+                        } else {
+                            echo htmlspecialchars($producto['nombre_sucursal']);
+                        }
+                    ?>
+                </strong>
             </p>
             
             <h2 class="price-tag my-3">$<?php echo number_format($producto['precio'], 2); ?></h2>
             
             <div class="my-4">
                 <h5><strong><i class="fa-solid fa-file-lines"></i> Descripción:</strong></h5>
-                <p class="lead text-dark"><?php echo $producto['descripcion']; ?></p>
+                <p class="lead text-dark"><?php echo nl2br(htmlspecialchars($producto['descripcion'])); ?></p>
             </div>
 
             <div class="alert <?php echo ($producto['stock'] > 0) ? 'alert-success' : 'alert-danger'; ?> border-2">
@@ -87,7 +96,7 @@ if (!$producto) {
                         </a>
                     <?php else: ?>
                         <a href="../login.php" class="btn btn-outline-dark btn-lg fw-bold">
-                            INICIA SESIÓN PARA COMPRAR
+                            <i class="fa-solid fa-right-to-bracket"></i> INICIA SESIÓN PARA COMPRAR
                         </a>
                     <?php endif; ?>
                 </div>
